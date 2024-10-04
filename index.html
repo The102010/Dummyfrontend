@@ -1,61 +1,235 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2نموذج التواصل</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            direction: rtl;
-            text-align: right;
-            padding: 20px;
-        }
-        label, input, textarea {
-            display: block;
-            margin: 10px 0;
-            width: 100%;
-            max-width: 400px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Dummy MVP App</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+  <!-- CSS -->
+  <style>
+    /* Basic styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1, h2 {
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-weight: 300;
+      color: #666;
+    }
+
+    /* Buttons */
+    button {
+      padding: 12px 30px;
+      margin-top: 20px;
+      cursor: pointer;
+      background-color: #3498db;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    /* Input fields */
+    input[type="text"], input[type="email"], textarea {
+      padding: 12px;
+      margin: 10px 0;
+      width: 80%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    /* Map container */
+    #map, #reportMap {
+      height: 300px;
+      width: 80%;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    /* Links */
+    a {
+      color: #3498db;
+      text-decoration: none;
+      margin-top: 20px;
+      display: inline-block;
+      font-size: 16px;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Icons */
+    .icon {
+      font-size: 50px;
+      color: #3498db;
+      margin-bottom: 20px;
+    }
+
+    /* Report styling */
+    .report {
+      background-color: #fff;
+      padding: 20px;
+      width: 80%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+  </style>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
+  <div id="app">
+    <!-- Content will be injected here -->
+  </div>
 
-    <h1>نموذج تواصل</h1>
-    <form id="contactForm">
-        <label for="name">الاسم:</label>
-        <input type="text" id="name" name="name" required>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-        <label for="email">البريد الإلكتروني:</label>
-        <input type="email" id="email" name="email" required>
+  <!-- JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      showMainScreen();
+    });
 
-        <label for="message">الرسالة:</label>
-        <textarea id="message" name="message" required></textarea>
+    let selectedLocation = null; // To store the selected location from the map
 
-        <button type="submit">إرسال</button>
-    </form>
+    function clearApp() {
+      document.getElementById('app').innerHTML = '';
+    }
 
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyifGuVjGq7qtjAU2QfFA_DJkBv845bKQP5fTl015so6sXXcnpAFUFHGZWCYVai_WdSkg/exec';
-        const form = document.getElementById('contactForm');
+    function showMainScreen() {
+      clearApp();
+      var app = document.getElementById('app');
+      var mainScreen = '<div>' +
+                          '<i class="fas fa-map-marked-alt icon"></i>' +
+                          '<h1>Welcome to Our Demo App</h1>' +
+                          '<p>This is a brief introduction to the app.</p>' +
+                          '<h2>Select your location and enter notes</h2>' +
+                          '<div id="map"></div>' +
+                          '<input type="text" id="radiusInput" placeholder="Enter radius in kilometers">' +
+                          '<textarea id="notesInput" placeholder="Enter your notes here"></textarea>' +
+                          '<button onclick="showReportScreen()">Generate Report</button>' +
+                        '</div>';
+      app.innerHTML = mainScreen;
+      initMap();
+    }
 
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(response => alert('تم إرسال الرسالة بنجاح!'))
-                .catch(error => alert('حدث خطأ ما. الرجاء المحاولة لاحقاً.'));
-        });
-    </script>
+    function initMap() {
+      var map = L.map('map').setView([24.7136, 46.6753], 13); // Centered on Riyadh
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
 
+      var marker;
+      map.on('click', function(e) {
+        if (marker) {
+          map.removeLayer(marker);
+        }
+        marker = L.marker(e.latlng).addTo(map);
+        selectedLocation = e.latlng; // Store the selected location
+      });
+    }
+
+    function showReportScreen() {
+      var radius = document.getElementById('radiusInput').value;
+      var notes = document.getElementById('notesInput').value;
+
+      if (!selectedLocation) {
+        alert('Please select a location on the map.');
+        return;
+      }
+
+      clearApp();
+
+      var app = document.getElementById('app');
+      var reportScreen = '<div>' +
+                           '<i class="fas fa-file-alt icon"></i>' +
+                           '<h2>Your Report</h2>' +
+                           '<div class="report">' +
+                             '<p><strong>Radius:</strong> ' + radius + ' km</p>' +
+                             '<p><strong>Your Notes:</strong></p>' +
+                             '<p>' + notes + '</p>' +
+                             '<div id="reportMap"></div>' + // Map container in the report
+                           '</div>' +
+                           '<button onclick="downloadReport()">Download Report</button>' +
+                           '<input type="email" id="emailInput" placeholder="Enter your email to subscribe">' +
+                           '<button onclick="subscribe()">Subscribe</button>' +
+                           '<br>' +
+                           '<a href="#" onclick="showMainScreen()">Return to Main Screen</a>' +
+                         '</div>';
+      app.innerHTML = reportScreen;
+      initReportMap();
+    }
+
+    function initReportMap() {
+      var reportMap = L.map('reportMap').setView([24.7136, 46.6753], 13); // Centered on Riyadh
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(reportMap);
+
+      if (selectedLocation) {
+        L.marker(selectedLocation).addTo(reportMap);
+        // Draw a circle with the specified radius
+        var radiusInMeters = parseFloat(document.getElementById('radiusInput').value) * 1000;
+        L.circle(selectedLocation, { radius: radiusInMeters }).addTo(reportMap);
+        reportMap.setView(selectedLocation, 13);
+      }
+    }
+
+    function downloadReport() {
+      alert('Report downloaded successfully!');
+      // You can add actual download logic here
+    }
+
+    function subscribe() {
+      var email = document.getElementById('emailInput').value;
+      if (email) {
+        alert('Thank you! You have subscribed successfully.');
+      } else {
+        alert('Please enter your email.');
+      }
+      // You can add actual subscription logic here
+    }
+  </script>
 </body>
 </html>
